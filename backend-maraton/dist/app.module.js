@@ -13,6 +13,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const ciudad_module_1 = require("./ciudad/ciudad.module");
+const atleta_module_1 = require("./atleta/atleta.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -25,6 +26,7 @@ exports.AppModule = AppModule = __decorate([
             }),
             mongoose_1.MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/maraton_db'),
             ciudad_module_1.CiudadModule,
+            atleta_module_1.AtletaModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
