@@ -26,7 +26,7 @@ let AtletaService = class AtletaService {
         this.ciudadModel = ciudadModel;
     }
     async findAll() {
-        return this.atletaModel.find().populate('ciudadId', 'nombre').exec();
+        return this.atletaModel.find().populate('ciudadId', 'nombre').sort({ posicion: 1 }).exec();
     }
     async findOne(id) {
         if (!id || id.trim() === '') {

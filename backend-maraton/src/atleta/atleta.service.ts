@@ -10,7 +10,7 @@ export class AtletaService {
     constructor(@InjectModel(Atleta.name) private atletaModel: Model<Atleta>, @InjectModel(Ciudad.name) private ciudadModel: Model<Ciudad>) {}
 
     async findAll(): Promise<Atleta[]> {
-        return this.atletaModel.find().populate('ciudadId', 'nombre').exec();
+        return this.atletaModel.find().populate('ciudadId', 'nombre').sort({ posicion: 1 }).exec();
     }
 
     async findOne(id: string): Promise<Atleta> {
