@@ -13,13 +13,11 @@
         </RouterLink>
       </div>
 
-      <!-- Loading state -->
       <div v-if="loading" class="text-center py-8">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         <p class="mt-2 text-gray-600">Cargando ciudades...</p>
       </div>
 
-      <!-- Empty state -->
       <div v-else-if="ciudades.length === 0" class="text-center py-8">
         <div class="text-gray-400 mb-4">
           <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,11 +34,10 @@
         </RouterLink>
       </div>
 
-      <!-- Cities list -->
       <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div 
           v-for="ciudad in ciudades" 
-          :key="ciudad._id"
+          :key="ciudad.id"
           class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
         >
           <div class="flex items-center justify-between">
@@ -65,7 +62,7 @@
                 </svg>
               </button>
               <button 
-                @click="deleteCiudad(ciudad._id)"
+                @click="handleDeleteCiudad(ciudad.id)"
                 class="text-red-600 hover:text-red-800 p-1"
                 title="Eliminar ciudad"
               >
@@ -78,10 +75,6 @@
         </div>
       </div>
 
-      <!-- Error message -->
-      <div v-if="error" class="mt-4 p-3 bg-red-100 text-red-800 rounded-md">
-        {{ error }}
-      </div>
     </div>
   </div>
 </template>
@@ -90,64 +83,25 @@
 import { ref, onMounted } from 'vue'
 import { useCiudades } from '../composables/useCiudades'
 
-const { ciudades, loading, error, fetchCiudades } = useCiudades()
+const { ciudades, loading, fetchCiudades, deleteCiudad } = useCiudades()
 
-// Estado reactivo
-// const ciudades = ref([])
-// const loading = ref(false)
-// const error = ref('')
-
-// Métodos
-const loadCiudades = async () => {
-  loading.value = true
-  error.value = ''
-  
-  try {
-    // Aquí irá la llamada al API cuando creemos los composables
-    console.log('Cargando ciudades...')
-    
-    // Simulación de datos
-    setTimeout(() => {
-      ciudades.value = [
-        { _id: '1', nombre: 'Buenos Aires' },
-        { _id: '2', nombre: 'Córdoba' },
-        { _id: '3', nombre: 'Rosario' },
-        { _id: '4', nombre: 'Mendoza' }
-      ]
-      loading.value = false
-    }, 1000)
-    
-  } catch (err) {
-    console.error('Error al cargar ciudades:', err)
-    error.value = 'Error al cargar las ciudades. Intente nuevamente.'
-    loading.value = false
-  }
-}
 
 const editCiudad = (ciudad) => {
   // Aquí implementaremos la edición cuando creemos los composables
   console.log('Editar ciudad:', ciudad)
 }
 
-const deleteCiudad = async (ciudadId) => {
-  if (!confirm('¿Está seguro que desea eliminar esta ciudad?')) {
+const handleDeleteCiudad = async (ciudadId) => {
+  if (!confirm('¿Está seguro que desea eliminar la ciudad ' + ciudades.value.find(c => c.id === ciudadId).nombre + '?')) {
     return
   }
-  
   try {
-    // Aquí irá la llamada al API cuando creemos los composables
-    console.log('Eliminar ciudad:', ciudadId)
-    
-    // Simulación de eliminación
-    ciudades.value = ciudades.value.filter(c => c._id !== ciudadId)
-    
-  } catch (err) {
-    console.error('Error al eliminar ciudad:', err)
-    error.value = 'Error al eliminar la ciudad.'
+    await deleteCiudad(ciudadId)
+  } catch (error) {
+    throw error
   }
 }
 
-// Cargar ciudades al montar el componente
 onMounted(() => {
   fetchCiudades()
 })

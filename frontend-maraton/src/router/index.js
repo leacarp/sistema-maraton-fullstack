@@ -15,6 +15,11 @@ const router = createRouter({
           component: () => import('../views/CiudadForm.vue')
         },
         {
+          path: '/editar-ciudad/:id',
+          name: 'editar-ciudad',
+          component: () => import('../views/CiudadForm.vue')
+        },
+        {
           path: '/ciudades',
           name: 'ciudades',
           component: () => import('../views/CiudadList.vue')
@@ -22,6 +27,11 @@ const router = createRouter({
         {
           path: '/nuevo-atleta',
           name: 'nuevo-atleta',
+          component: () => import('../views/AtletaForm.vue')
+        },
+        {
+          path: '/editar-atleta/:id',
+          name: 'editar-atleta',
           component: () => import('../views/AtletaForm.vue')
         },
         {

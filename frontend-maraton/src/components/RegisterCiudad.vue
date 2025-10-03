@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-6">
+  <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-10">
     <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
       Registrar Nueva Ciudad
     </h2>
@@ -39,54 +39,34 @@
       </div>
     </form>
     
-    <!-- Mensaje de éxito o error -->
-    <div v-if="message" class="mt-4 p-3 rounded-md" :class="messageType === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-      {{ message }}
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useCiudades } from '../composables/useCiudades'
+import { useRouter } from 'vue-router'
 
-// Estado reactivo
+const { createCiudad, loading } = useCiudades()
+
+const router = useRouter()
 const ciudad = ref({
   nombre: ''
 })
 
-const loading = ref(false)
-const message = ref('')
-const messageType = ref('')
-
-// Métodos
 const submitForm = async () => {
-  loading.value = true
-  message.value = ''
-  
   try {
-    // Aquí irá la llamada al API cuando creemos los composables
-    console.log('Ciudad a guardar:', ciudad.value)
-    
-    // Simulación de guardado exitoso
-    setTimeout(() => {
-      message.value = 'Ciudad registrada exitosamente!'
-      messageType.value = 'success'
-      resetForm()
-      loading.value = false
-    }, 1000)
-    
+    const nuevaCiudad = await createCiudad(ciudad.value.nombre)
+    resetForm()
+    router.push('/ciudades')
   } catch (error) {
-    console.error('Error al guardar ciudad:', error)
-    message.value = 'Error al guardar la ciudad. Intente nuevamente.'
-    messageType.value = 'error'
-    loading.value = false
-  }
+    throw error
+  } 
 }
 
 const resetForm = () => {
   ciudad.value = {
     nombre: ''
   }
-  message.value = ''
 }
 </script>

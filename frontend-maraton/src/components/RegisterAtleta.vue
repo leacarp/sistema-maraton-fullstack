@@ -5,7 +5,6 @@
     </h2>
     
     <form @submit.prevent="submitForm" class="space-y-4">
-      <!-- DNI -->
       <div>
         <label for="dni" class="block text-sm font-medium text-gray-700 mb-1">
           DNI *
@@ -17,10 +16,12 @@
           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Ingrese el DNI del atleta"
           required
+          minlength="8"
+          maxlength="8"
+          pattern="[0-9]{8}"
         />
       </div>
 
-      <!-- Nombre -->
       <div>
         <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
           Nombre Completo *
@@ -36,7 +37,6 @@
         />
       </div>
 
-      <!-- Tiempo -->
       <div>
         <label for="tiempo" class="block text-sm font-medium text-gray-700 mb-1">
           Tiempo de Carrera *
@@ -52,7 +52,6 @@
         <p class="text-xs text-gray-500 mt-1">Formato: HH:MM:SS</p>
       </div>
 
-      <!-- Posición -->
       <div>
         <label for="posicion" class="block text-sm font-medium text-gray-700 mb-1">
           Posición *
@@ -68,7 +67,6 @@
         />
       </div>
 
-      <!-- Ciudad -->
       <div>
         <label for="ciudad" class="block text-sm font-medium text-gray-700 mb-1">
           Ciudad *
@@ -82,14 +80,13 @@
           <option value="">Seleccione una ciudad</option>
           <option 
             v-for="ciudad in ciudades" 
-            :key="ciudad._id" 
-            :value="ciudad._id"
+            :key="ciudad.id" 
+            :value="ciudad.id"
           >
             {{ ciudad.nombre }}
           </option>
         </select>
         
-        <!-- Mensaje si no hay ciudades -->
         <div v-if="ciudades.length === 0" class="mt-2 text-sm text-amber-600">
           No hay ciudades registradas. 
           <RouterLink to="/nueva-ciudad" class="text-blue-600 hover:underline">
@@ -98,7 +95,6 @@
         </div>
       </div>
       
-      <!-- Botones -->
       <div class="flex gap-3">
         <button
           type="submit"
@@ -116,19 +112,26 @@
           Limpiar
         </button>
       </div>
+
+      <div v-if="errorMessage" class="mt-4 p-3 bg-red-100 text-red-800 rounded-md">
+        {{ errorMessage }}
+      </div>
     </form>
-    
-    <!-- Mensaje de éxito o error -->
-    <div v-if="message" class="mt-4 p-3 rounded-md" :class="messageType === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-      {{ message }}
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useCiudades } from '../composables/useCiudades'
+import { useAtletas } from '../composables/useAtletas'
+import { useRouter } from 'vue-router'
 
-// Estado reactivo
+const props = defineProps(['atletaId'])
+
+const { fetchCiudades, ciudades, loading } = useCiudades()
+const { createAtleta, loading: loadingAtleta, fetchAtletaById, updateAtleta } = useAtletas()
+
+const router = useRouter()
 const atleta = ref({
   dni: null,
   nombre: '',
@@ -136,61 +139,31 @@ const atleta = ref({
   posicion: null,
   ciudadId: ''
 })
+const errorMessage = ref('')
 
-const ciudades = ref([])
-const loading = ref(false)
-const message = ref('')
-const messageType = ref('')
+const ciudadesCargadas = ref([])
 
-// Métodos
 const loadCiudades = async () => {
   try {
-    // Aquí irá la llamada al API cuando creemos los composables
-    console.log('Cargando ciudades para el formulario...')
-    
-    // Simulación de datos
-    setTimeout(() => {
-      ciudades.value = [
-        { _id: '1', nombre: 'Buenos Aires' },
-        { _id: '2', nombre: 'Córdoba' },
-        { _id: '3', nombre: 'Rosario' },
-        { _id: '4', nombre: 'Mendoza' }
-      ]
-    }, 500)
-    
+    await fetchCiudades()
+    ciudadesCargadas.value = ciudades.value
   } catch (error) {
-    console.error('Error al cargar ciudades:', error)
-    message.value = 'Error al cargar las ciudades.'
-    messageType.value = 'error'
-  }
+    throw error
+  } 
 }
 
 const submitForm = async () => {
-  loading.value = true
-  message.value = ''
-  
+  errorMessage.value = ''
   try {
-    // Validaciones adicionales
-    if (!atleta.value.dni || !atleta.value.nombre || !atleta.value.tiempo || !atleta.value.posicion || !atleta.value.ciudadId) {
-      throw new Error('Todos los campos son obligatorios')
+    if (props.atletaId) {
+      await updateAtleta(props.atletaId, atleta.value)
+    } else {
+      await createAtleta(atleta.value)
     }
-    
-    // Aquí irá la llamada al API cuando creemos los composables
-    console.log('Atleta a guardar:', atleta.value)
-    
-    // Simulación de guardado exitoso
-    setTimeout(() => {
-      message.value = 'Atleta registrado exitosamente!'
-      messageType.value = 'success'
-      resetForm()
-      loading.value = false
-    }, 1000)
-    
-  } catch (error) {
-    console.error('Error al guardar atleta:', error)
-    message.value = error.message || 'Error al guardar el atleta. Intente nuevamente.'
-    messageType.value = 'error'
-    loading.value = false
+    resetForm()
+    router.push('/atletas')
+  } catch (error) {     
+    errorMessage.value = error.response.data.message
   }
 }
 
@@ -202,11 +175,23 @@ const resetForm = () => {
     posicion: null,
     ciudadId: ''
   }
-  message.value = ''
 }
 
-// Cargar ciudades al montar el componente
-onMounted(() => {
+onMounted(async () => {
   loadCiudades()
+
+  if (props.atletaId) {
+    const atletaData = await fetchAtletaById(props.atletaId)
+    const ciudadEncontrada = ciudades.value.find(c => c.nombre === atletaData.ciudad)
+  
+  atleta.value = {
+    dni: atletaData.dni,
+    nombre: atletaData.nombre,
+    tiempo: atletaData.tiempo,
+    posicion: atletaData.posicion,
+    ciudadId: ciudadEncontrada?.id || ''
+  }
+  }
+
 })
 </script>
