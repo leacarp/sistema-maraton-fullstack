@@ -82,13 +82,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useCiudades } from '../composables/useCiudades'
+import { useRouter } from 'vue-router'
 
 const { ciudades, loading, fetchCiudades, deleteCiudad } = useCiudades()
+const router = useRouter()
 
 
 const editCiudad = (ciudad) => {
-  // Aquí implementaremos la edición cuando creemos los composables
-  console.log('Editar ciudad:', ciudad)
+  router.push(`/editar-ciudad/${ciudad.id}`)
 }
 
 const handleDeleteCiudad = async (ciudadId) => {

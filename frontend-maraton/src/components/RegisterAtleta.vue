@@ -1,7 +1,7 @@
 <template>
-  <div class="max-w-lg mx-auto bg-white rounded-xl shadow-md p-6">
+  <div class="max-w-lg mx-auto bg-white rounded-xl shadow-md p-6 px-12">
     <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
-      Registrar Nuevo Atleta
+      {{ isEdit ? 'Editar Atleta' : 'Registrar Nuevo Atleta' }}
     </h2>
     
     <form @submit.prevent="submitForm" class="space-y-4">
@@ -140,6 +140,7 @@ const atleta = ref({
   ciudadId: ''
 })
 const errorMessage = ref('')
+const isEdit = ref(false)
 
 const ciudadesCargadas = ref([])
 
@@ -181,6 +182,7 @@ onMounted(async () => {
   loadCiudades()
 
   if (props.atletaId) {
+    isEdit.value = true
     const atletaData = await fetchAtletaById(props.atletaId)
     const ciudadEncontrada = ciudades.value.find(c => c.nombre === atletaData.ciudad)
   

@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-10">
     <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
-      Registrar Nueva Ciudad
+      {{ isEdit ? 'Editar Ciudad' : 'Registrar Nueva Ciudad' }}
     </h2>
     
     <form @submit.prevent="submitForm" class="space-y-4">
@@ -43,24 +43,33 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useCiudades } from '../composables/useCiudades'
 import { useRouter } from 'vue-router'
 
-const { createCiudad, loading } = useCiudades()
+const { createCiudad, updateCiudad, loading, fetchCiudadById } = useCiudades()
+
+const props = defineProps(['ciudadId'])
 
 const router = useRouter()
 const ciudad = ref({
   nombre: ''
 })
+const errorMessage = ref('')
+const isEdit = ref(false)
 
 const submitForm = async () => {
+  errorMessage.value = ''
   try {
-    const nuevaCiudad = await createCiudad(ciudad.value.nombre)
+    if (props.ciudadId) {
+      await updateCiudad(props.ciudadId, ciudad.value.nombre)
+    } else {
+      await createCiudad(ciudad.value.nombre)
+    }
     resetForm()
     router.push('/ciudades')
   } catch (error) {
-    throw error
+    errorMessage.value = error.response.data.message
   } 
 }
 
@@ -69,4 +78,12 @@ const resetForm = () => {
     nombre: ''
   }
 }
+
+onMounted(async () => {
+  if (props.ciudadId) {
+    isEdit.value = true
+    const ciudadData = await fetchCiudadById(props.ciudadId)
+    ciudad.value = ciudadData
+  }
+})
 </script>

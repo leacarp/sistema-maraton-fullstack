@@ -82,7 +82,7 @@ export function useCiudades() {
         nombre
       })
       
-      if (response.status !== 201) {
+      if (response.status !== 201 && response.status !== 200) {
         const errorData = response.data
         throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
       }
